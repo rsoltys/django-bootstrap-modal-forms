@@ -57,13 +57,8 @@ https://github.com/trco/django-bootstrap-modal-forms
     // Submit form callback function
     var submitForm = function (settings) {        
         if (!settings.asyncUpdate) {
-            if (!settings.asyncSettings.closeOnSubmit) {
-                $(settings.modalForm).submit();
-            }
-            else {
-                window.location.reload();
-            }
-        } else {
+            $(settings.modalForm).submit();
+        } else {          
             var asyncSettingsValid = validateAsyncSettings(settings.asyncSettings);
             var asyncSettings = settings.asyncSettings;
 
@@ -83,7 +78,7 @@ https://github.com/trco/django-bootstrap-modal-forms
                             console.error("django-bootstrap-modal-forms: <body> element missing in your html.");
                         }
                         body.prepend(asyncSettings.successMessage);
-
+    
                         // Update page without refresh
                         $.ajax({
                             type: "GET",
@@ -92,12 +87,12 @@ https://github.com/trco/django-bootstrap-modal-forms
                             success: function (response) {
                                 // Update page
                                 $(asyncSettings.dataElementId).html(response[asyncSettings.dataKey]);
-
+    
                                 // Add modalForm to trigger element after async page update
                                 if (asyncSettings.addModalFormFunction) {
                                     asyncSettings.addModalFormFunction();
                                 }
-
+    
                                 if (asyncSettings.closeOnSubmit) {
                                     $(settings.modalID).modal("hide");
                                 } else {
@@ -121,7 +116,7 @@ https://github.com/trco/django-bootstrap-modal-forms
         if (!settings.successMessage) {
             missingSettings.push("successMessage");
             console.error("django-bootstrap-modal-forms: 'successMessage' in asyncSettings is missing.");
-        }
+        }        
         if (!settings.dataUrl) {
             missingSettings.push("dataUrl");
             console.error("django-bootstrap-modal-forms: 'dataUrl' in asyncSettings is missing.");
