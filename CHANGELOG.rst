@@ -2,6 +2,17 @@
 Changelog
 =========
 
+2.2.0 (2021-04-27)
+==================
+
+- add custom is_ajax function since Django's is_ajax is deprectated
+- change post method to delete method in DeleteMessageMixin
+
+2.1.0 (2021-03-06)
+==================
+
+- fix form submission with button type submit
+
 2.0.1 (2020-11-22)
 ==================
 

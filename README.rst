@@ -9,7 +9,7 @@ Live Demo
 
 Demo_
 
-.. _Demo: https://trco.si/dbmf/
+.. _Demo: http://trco.silkym.com/dbmf/
 
 Installation
 ============
@@ -92,8 +92,6 @@ Define BookModelForm and inherit built-in form ``BSModalModelForm``.
 Define form's html and save it as Django template.
 
 - Bootstrap 4 modal elements are used in this example.
-- Button triggering the submission should have type attribute set to ``"button"`` and not ``"submit"``.
-- Add ``class="submit-btn"`` or custom ``submitBtn`` class (see paragraph **Options**) to this button.
 - Form will POST to ``formURL`` defined in #6.
 - Add ``class="invalid"`` or custom ``errorClass`` (see paragraph **Options**) to the elements that wrap the fields.
 - ``class="invalid"`` acts as a flag for the fields having errors after the form has been POSTed.
@@ -126,7 +124,7 @@ Define form's html and save it as Django template.
 
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="submit-btn btn btn-primary">Create</button>
+        <button type="submit" class="btn btn-primary">Create</button>
       </div>
 
     </form>
@@ -216,6 +214,7 @@ Async create/update with or without modal closing on submit
 ===========================================================
 
 Set ``asyncUpdate`` and ``asyncSettings`` settings to create or update objects without page redirection to ``successUrl`` and define whether a modal should close or stay opened after form submission. See comments in example below and paragraph **modalForm options** for explanation of ``asyncSettings``.
+See examples on how to properly reinstantiate modal forms for all CRUD buttons when using async options.
 
 .. code-block:: html
 
@@ -332,11 +331,11 @@ modalForm
 formURL
   Sets the url of the form's view and html. ``Default: null``
 
+isDeleteForm
+  Defines if form is used for deletion. Should be set to ``true`` for deletion forms.  ``Default: false``
+
 errorClass
   Sets the custom class for the form fields having errors. ``Default: ".invalid"``
-
-submitBtn
-  Sets the custom class for the button triggering form submission in modal. ``Default: ".submit-btn"``
 
 asyncUpdate
   Sets asynchronous content update after form submission. ``Default: false``
@@ -351,13 +350,13 @@ asyncSettings.dataUrl
   Sets url of the view returning new queryset = all of the objects plus newly created or updated one after asynchronous update. ``Default: null``
 
 asyncSettings.dataElementId
-  Sets the ``id`` of the element which renders asynchronously updated queryset. ``Default: null``
+  Sets the ``id`` of the element which rerenders asynchronously updated queryset. ``Default: null``
 
 asyncSettings.dataKey
   Sets the key containing asynchronously updated queryset in the data dictionary returned from the view providing updated queryset. ``Default: null``
 
 asyncSettings.addModalFormFunction
-  Sets the method needed for reinstantiation of event listeners on button after asynchronous update. ``Default: null``
+  Sets the method needed for reinstantiation of event listeners on buttons (single or all CRUD buttons) after asynchronous update. ``Default: null``
 
 modalForm default settings object and it's structure
 ****************************************************
@@ -369,8 +368,8 @@ modalForm default settings object and it's structure
         modalContent: ".modal-content",
         modalForm: ".modal-content form",
         formURL: null,
+        isDeleteForm: false,
         errorClass: ".invalid",
-        submitBtn: ".submit-btn",
         asyncUpdate: false,
         asyncSettings: {
             closeOnSubmit: false,
@@ -509,7 +508,7 @@ For explanation how all the parts of the code work together see paragraph **Usag
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="submit-btn btn btn-primary">Sign up</button>
+        <button type="submit" class="btn btn-primary">Sign up</button>
       </div>
 
     </form>
@@ -627,7 +626,7 @@ You can also set the custom login redirection by:
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="submit-btn btn btn-primary">Log in</button>
+        <button type="submit" class="btn btn-primary">Log in</button>
       </div>
 
     </form>
@@ -735,7 +734,7 @@ For explanation how all the parts of the code work together see paragraph **Usag
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="submit-btn btn btn-primary">Create</button>
+        <button type="submit" class="btn btn-primary">Create</button>
       </div>
 
     </form>
@@ -777,7 +776,7 @@ For explanation how all the parts of the code work together see paragraph **Usag
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="submit-btn btn btn-primary">Update</button>
+        <button type="submit" class="btn btn-primary">Update</button>
       </div>
 
     </form>
@@ -923,15 +922,15 @@ For explanation how all the parts of the code work together see paragraph **Usag
     {% for book in books %}
         <div class="text-center">
           <!-- Read book buttons -->
-          <button type="button" id="read-book" class="bs-modal btn btn-sm btn-primary" data-form-url="{% url 'read_book' book.pk %}">
+          <button type="button" class="read-book bs-modal btn btn-sm btn-primary" data-form-url="{% url 'read_book' book.pk %}">
             <span class="fa fa-eye"></span>
           </button>
           <!-- Update book buttons -->
-          <button type="button" id="update-book" class="bs-modal btn btn-sm btn-primary" data-form-url="{% url 'update_book' book.pk %}">
+          <button type="button" class="update-book bs-modal btn btn-sm btn-primary" data-form-url="{% url 'update_book' book.pk %}">
             <span class="fa fa-pencil"></span>
           </button>
           <!-- Delete book buttons -->
-          <button type="button" id="delete-book" class="bs-modal btn btn-sm btn-danger" data-form-url="{% url 'delete_book' book.pk %}">
+          <button type="button" class="delete-book bs-modal btn btn-sm btn-danger" data-form-url="{% url 'delete_book' book.pk %}">
             <span class="fa fa-trash"></span>
           </button>
         </div>
@@ -940,15 +939,17 @@ For explanation how all the parts of the code work together see paragraph **Usag
     <script type="text/javascript">
       $(function () {
 
-        // Update, Read and Delete book buttons open modal with id="modal" (default)
-        // The formURL is retrieved from the data of the element
-        $(".bs-modal").each(function () {
-          $(this).modalForm({
-              formURL: $(this).data('form-url')
-          });
+        // Read book buttons
+        $(".read-book").each(function () {
+            $(this).modalForm({formURL: $(this).data("form-url")});
         });
 
-         // Create book button opens form in modal with id="create-modal"
+        // Delete book buttons - formURL is retrieved from the data of the element
+        $(".delete-book").each(function () {
+            $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
+        });
+
+        // Create book button opens form in modal with id="create-modal"
         $("#create-book").modalForm({
             formURL: "{% url 'create_book' %}",
             modalID: "#create-modal"
@@ -976,7 +977,7 @@ For explanation how all the parts of the code work together see paragraph **Usag
         type = forms.ChoiceField(choices=Book.BOOK_TYPES)
 
         class Meta:
-            fields = ['type', 'clear']
+            fields = ['type']
 
 .. code-block:: html
 
@@ -1015,8 +1016,7 @@ For explanation how all the parts of the code work together see paragraph **Usag
       </div>
 
       <div class="modal-footer">
-        <input type="submit" class="btn btn-primary" name="clear" value="Clear"/>
-        <button type="button" class="submit-btn btn btn-primary">Filter</button>
+        <button type="submit" class="btn btn-primary">Filter</button>
       </div>
 
     </form>
@@ -1030,11 +1030,7 @@ For explanation how all the parts of the code work together see paragraph **Usag
         form_class = BookFilterForm
 
         def form_valid(self, form):
-            if 'clear' in self.request.POST:
-                self.filter = ''
-            else:
-                self.filter = '?type=' + form.cleaned_data['type']
-
+            self.filter = '?type=' + form.cleaned_data['type']
             response = super().form_valid(form)
             return response
 
@@ -1058,7 +1054,7 @@ For explanation how all the parts of the code work together see paragraph **Usag
     index.html
       
       ...
-      <button id="filter-book" class="bs-modal btn btn-primary" type="button" name="button" data-form-url="{% url 'filter_book' %}">
+      <button id="filter-book" class="filter-book btn btn-primary" type="button" name="button" data-form-url="{% url 'filter_book' %}">
         <span class="fa fa-filter mr-2"></span>Filter books
       </button>
       ...
@@ -1066,7 +1062,7 @@ For explanation how all the parts of the code work together see paragraph **Usag
       <script type="text/javascript">
         $(function () {
           ...
-          $(".bs-modal").each(function () {
+          $("#filter-book").each(function () {
               $(this).modalForm({formURL: $(this).data('form-url')});
           });
           ...
